@@ -9,12 +9,14 @@
 #### PRELIMINARIES ------------------------------------------------------------------------------------------------------------------------
 
 library(rvest);library(RSelenium) # scraping
+library(RCurl)
+library(tidyverse);library(reshape2)
 
 ## the selectorgadget chrome pluginmakes this process easier
 # i use it to get the css codes for html_nodes etc
 # https://selectorgadget.com/
 
-#### PULL RECIPE DATA ---------------------------------------------------------------------------------------------------------------------
+#### PULL RECIPE LINKS ---------------------------------------------------------------------------------------------------------------------
 
 ### NYT recipes best of 2019 - do later
 NYT<-'https://cooking.nytimes.com/68861692-nyt-cooking/18142387-the-50-recipes-our-most-devoted-readers-loved-this-year'
@@ -28,32 +30,49 @@ mos<-c('january','february','march','april','may','june','july','august','octobe
 
 ## recipe list from every month
 mos.link<-'https://www.bonappetit.com/gallery/most-popular-recipes-'
-mos.link
 
 
 ## read page
 # a function to read in the
-read_page<-function(month){
+
+## read march recipe list, name and link
+month<-'march'
+page.mo<-read_html(paste0(mos.link, month, '-2019'))
+ba.data<-data.frame(recipe = page.mo%>%html_nodes('.gallery-slide-caption__hed')%>%html_text(),
+                    link= page.mo%>%html_nodes('.gallery-slide-caption__cta')%>% html_attr("href"),
+                    mo = paste0(month))
+ba.data
+
+# do to all months - sam ething wrapped in a function
+read_page<-function(month){ 
   page.mo<-read_html(paste0(mos.link, month, '-2019'))
-  
   ba.data<-data.frame(recipe = page.mo%>%html_nodes('.gallery-slide-caption__hed')%>%html_text(),
                       link= page.mo%>%html_nodes('.gallery-slide-caption__cta')%>% html_attr("href"),
                       mo = paste0(month))
   return(ba.data)
 }
 
+# run function for just march
+read_page(month='march')
 
-read_page(month='january')
-
+## apply the function to each month in the list
 # read links from all monthly best of pages
+# compile in dataframe
 month.recipes<-lapply(mos,read_page)%>%bind_rows
 month.recipes
 
-# search sublists for ingredients
+
+#### GET RECIPE INSTRUCTIONS ---------------------------------------------------------------------------------------
+
+## get_ing - function that pulls the ingredients from a recipe link
 get_ing<-function(link){
   linkl<-as.character(link)
+  
+  # generate dataframe of recipe ingredients
   ba.ing<-data.frame(ingredient = read_html(as.character(link))%>%html_nodes('.ingredients__text')%>%html_text()) # ingrediensts
   rec<-ba.data%>%filter(link == linkl)
+  
+  ## this code pulls the notes out from the recipes - work on later
   #ba.notes<-data.frame(ingredients = read_html(linkl)%>%
   #  html_nodes('p')%>%html_text())%>% # cooking description
   #  mutate(recipe = paste(rec$recipe))
@@ -61,10 +80,12 @@ get_ing<-function(link){
   return(ba.ing)
 }
 
-recipes.2019<-lapply(month.recipes$link, get_ing)%>%setNames(month.recipes$recipe)
+## apply function to all recipe links
+recipes.2019<-lapply(month.recipes$link, get_ing)%>%
+  setNames(month.recipes$recipe) # set the names of each element to the recipe nameß
 str(recipes.2019)
 
-recipes.2019$`Pan-Roasted Steak with Crispy Broccoli`
+## process data
 rec<-recipes.2019%>%bind_rows(.id='recipe')%>%
   mutate(ingredient_clean = gsub(',', '', str_remove_all(ingredient, "\\s*\\([^\\)]+\\)")))%>%
   mutate(units=word(ingredient_clean, 1, 2), food_1 = word(ingredient_clean, 3,5))
