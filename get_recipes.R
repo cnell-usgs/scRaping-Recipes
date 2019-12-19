@@ -95,8 +95,11 @@ unique(rec$ingredient_clean) #919
 food.list<-unique(rec$food_1) #300
 food.list
 
+#### EXTRACT FOOD ITEMS --------------------------------------------------------------------------------------------
+
 ## clean up ingredients
-## extract measurements
+## breate 'bag of tricks' of food items of interest
+# scrape lists of foods from wikipedia pagesß
 
 veg.page<-'https://en.wikipedia.org/wiki/List_of_vegetables'
 veg.html<-read_html(veg.page)%>%html_nodes('a')%>%html_attr('title')
@@ -127,6 +130,12 @@ unique(ing$foody)#259
 unique(ing$type)#22
 str(ing)
 
+#### NETWORK -------------------------------------------------------------------------------------------------------
+
+
+library(igraph)
+library(bipartite)
+
 ## number of recipes & months for each ingredient
 ing.rank<-ing%>%
   group_by(type,foody)%>%
@@ -136,13 +145,12 @@ ing.cast<-ing%>%dcast(recipe~foody)%>%column_to_rownames('recipe')
 plotweb(ing.cast)
 
 
-library(igraph)
-library(bipartite)
-
 ing.graph<-graph_from_incidence_matrix(ing.cast)
 plot(ing.graph)
 
-##################################################################################
+#### EXTRACT UNITS -------------------------------------------------------------------------------------------------
+
+
 rec<-rec%>%mutate(units = word(ingredient, 1, 2))
 rec
 unique(rec$units) #237
@@ -151,6 +159,9 @@ unique(rec$units) #237
 ## pull measurements from here
 # make list of measurements that are likely incorrect, need further cleaning
 units<-unique(rec$units)
+
+
+#### WORKING WITH SPOONACULAR API ----------------------------------------------------------------------------------
 
 # spoonacular api access
 api.host<-'spoonacular-recipe-food-nutrition-v1.p.rapidapi.com'
