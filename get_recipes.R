@@ -26,42 +26,22 @@ NYT<-'https://cooking.nytimes.com/68861692-nyt-cooking/18142387-the-50-recipes-o
 # list of months
 mos<-c('january','february','march','april','may','june','july','august','october','november')
 
-## get every recipe from every month
-# use list of months to make a list of the websites with the recipe lists
-mos.links<-paste0('https://www.bonappetit.com/gallery/most-popular-recipes-', mos, '-2019')
-mos.links
+## recipe list from every month
+mos.link<-'https://www.bonappetit.com/gallery/most-popular-recipes-'
+mos.link
 
-## read html
-ba.data<-data.frame(recipe = read_html(bp.jan)%>%html_nodes('.gallery-slide-caption__hed')%>%html_text(),
-                    link= read_html(bp.jan)%>%html_nodes('.gallery-slide-caption__cta')%>% html_attr("href"))%>%
-  transform(link=as.character(link))
-ba.data
 
-# search sublists
-ba.ing<-read_html(as.character(ba.data$link[1]))%>%html_nodes('.ingredients__text')
-ba.notes<-read_html(as.character(ba.data$link[1]))%>%
-  html_nodes('p')%>%html_text()
-ba.notes # can use this later to pull keywords
-# drop everything after 'GET THE MAGAZINE' 
-
-ba.new<-ba.notes[-grep('GET THE MAGAZINE', ba.notes):-length(ba.notes)]
-ba.new
-
-### get every recipe from every month
-mos<-c('january','february','march','april','may','june','july','august','october','november')
-
-mos.links<-paste0('https://www.bonappetit.com/gallery/most-popular-recipes-', mos, '-2019')
-mos.links
-
-# read page
+## read page
+# a function to read in the
 read_page<-function(month){
-  page.mo<-read_html(paste0('https://www.bonappetit.com/gallery/most-popular-recipes-', month, '-2019'))
+  page.mo<-read_html(paste0(mos.link, month, '-2019'))
   
   ba.data<-data.frame(recipe = page.mo%>%html_nodes('.gallery-slide-caption__hed')%>%html_text(),
                       link= page.mo%>%html_nodes('.gallery-slide-caption__cta')%>% html_attr("href"),
                       mo = paste0(month))
   return(ba.data)
 }
+
 
 read_page(month='january')
 
@@ -150,20 +130,6 @@ unique(rec$units) #237
 ## pull measurements from here
 # make list of measurements that are likely incorrect, need further cleaning
 units<-unique(rec$units)
-
-unit.clean<-rec%>%
-  mutate(units = gsub(',', '', tolower(units)))%>%
-  mutate(quantity = case_when(
-    units %in% c() ~ '',
-    units %in% c() ~ '',
-    units %in% c() ~ '',
-    units %in% c() ~ '',
-    units %in% c() ~ '',
-    units %in% c() ~ '',
-    units %in% c() ~ '',
-    units %in% c() ~ '',
-    
-  ))
 
 # spoonacular api access
 api.host<-'spoonacular-recipe-food-nutrition-v1.p.rapidapi.com'
