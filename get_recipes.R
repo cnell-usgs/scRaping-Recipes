@@ -99,18 +99,26 @@ food.list
 
 ## clean up ingredients
 ## breate 'bag of tricks' of food items of interest
-# scrape lists of foods from wikipedia pagesß
+# scrape lists of foods from wikipedia pages
 
 veg.page<-'https://en.wikipedia.org/wiki/List_of_vegetables'
-veg.html<-read_html(veg.page)%>%html_nodes('a')%>%html_attr('title')
-veg.list<-na.omit(veg.html[34:305])
-veg.list<-veg.list[c(-grep('Edit section:', veg.list), -grep('Binomial nomenclature', veg.list), -grep('Enlarge', veg.list), -grep('Santa Barbara County', veg.list))]
-veg.list<-gsub('\\(bean\\)', '', gsub('\\(plant\\)', '', gsub('\\(vegetable\\)', '', veg.list)))
-veg.list
+veg.html<-read_html(veg.page)%>%html_nodes('a')%>%html_attr('title') # read in html
+
+# get rid of bullshit
+veg.list<-na.omit(veg.html[34:305]) # drop non-food rows
+veg.list<-veg.list[c(-grep('Edit section:', veg.list), -grep('Binomial nomenclature', veg.list), -grep('Enlarge', veg.list), -grep('Santa Barbara County', veg.list))]# drop non-food rows
+str(veg.list) #235 words
+
+# drop words in parentheses 
+veg.list<-gsub('\\s*\\([^\\)]+\\)','',veg.list)%>%str_trim()%>%unique()
+str(veg.list)# 220
+
+### this script stops working somewhere around here...a lot more to do
 
 ## list of leafy vegetables
 leaf.page<-'https://en.wikipedia.org/wiki/List_of_leaf_vegetables'
 leaf.table<-read_html(leaf.page)%>%html_table(fill=TRUE)
+leaf.table
 leaf.list<-leaf.table[2]
 
 ## world cheeses
