@@ -1,16 +1,35 @@
-#### flavors of 2019
-library(rvest)
-library(RSelenium)
-# i'm doing all this with css codes that I have obtained using the chrome plugin
-#https://selectorgadget.com/
+#### FLAVORS OF 2019 ----------------------------------------------------------------------------------------------------------------------
 
-## bon appetit
-# jan
-bp.jan<-'https://www.bonappetit.com/gallery/most-popular-recipes-january-2019'
+## digesting the best recipes of the year from bon appetit 
 
-## new york times
-nyt<-'https://cooking.nytimes.com/68861692-nyt-cooking/18142387-the-50-recipes-our-most-devoted-readers-loved-this-year'
+## objectives
+# scrape monthly recipe lists from website
+# parse recipe info into useable data
 
+#### PRELIMINARIES ------------------------------------------------------------------------------------------------------------------------
+
+library(rvest);library(RSelenium) # scraping
+
+## the selectorgadget chrome pluginmakes this process easier
+# i use it to get the css codes for html_nodes etc
+# https://selectorgadget.com/
+
+#### PULL RECIPE DATA ---------------------------------------------------------------------------------------------------------------------
+
+### NYT recipes best of 2019 - do later
+NYT<-'https://cooking.nytimes.com/68861692-nyt-cooking/18142387-the-50-recipes-our-most-devoted-readers-loved-this-year'
+
+### BON APPETIT
+# for each month there was a list of the most popular recipes
+# weblinks followed at similar format with the month name changed
+
+# list of months
+mos<-c('january','february','march','april','may','june','july','august','october','november')
+
+## get every recipe from every month
+# use list of months to make a list of the websites with the recipe lists
+mos.links<-paste0('https://www.bonappetit.com/gallery/most-popular-recipes-', mos, '-2019')
+mos.links
 
 ## read html
 ba.data<-data.frame(recipe = read_html(bp.jan)%>%html_nodes('.gallery-slide-caption__hed')%>%html_text(),
@@ -30,6 +49,7 @@ ba.new
 
 ### get every recipe from every month
 mos<-c('january','february','march','april','may','june','july','august','october','november')
+
 mos.links<-paste0('https://www.bonappetit.com/gallery/most-popular-recipes-', mos, '-2019')
 mos.links
 
